@@ -193,7 +193,8 @@ public class KubernetesResourceManagerDriver
                                         podName,
                                         exception);
                                 CompletableFuture<KubernetesWorkerNode> future =
-                                        requestResourceFutures.remove(taskManagerSpec.getPod().getName());
+                                        requestResourceFutures.remove(
+                                                taskManagerSpec.getPod().getName());
                                 if (future != null) {
                                     future.completeExceptionally(exception);
                                 }
