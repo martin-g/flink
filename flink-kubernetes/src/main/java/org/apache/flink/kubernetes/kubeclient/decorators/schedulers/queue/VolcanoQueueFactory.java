@@ -23,11 +23,12 @@ import org.apache.flink.kubernetes.kubeclient.decorators.schedulers.customizedcl
 
 import io.fabric8.volcano.client.VolcanoClient;
 
+/** TODO. */
 public class VolcanoQueueFactory extends FlinkKubernetesQueueFactory {
     private static final VolcanoQueueFactory INSTANCE = new VolcanoQueueFactory();
     private VolcanoClient volcanoClient;
 
-    public void InitVolcanoQueueFactory(Configuration flinkConfig) {
+    public void initVolcanoQueueFactory(Configuration flinkConfig) {
         this.volcanoClient = FlinkVolcanoClient.getVolcanoClient(flinkConfig);
     }
 

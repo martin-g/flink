@@ -41,7 +41,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** TODO. */
 public class Volcano extends KubernetesCustomizedScheduler {
+
+    private static final String QUEUE_PREFIX = "scheduling.volcano.sh/queue-name";
+    private static final String PODGROUP_PREFIX = "scheduling.k8s.io/group-name";
+
     @Override
     public Object getJobId() {
         return jobId;
@@ -49,19 +54,17 @@ public class Volcano extends KubernetesCustomizedScheduler {
 
     private Object jobId = null;
     private String queue;
-    private String min_member_per_job;
+    private String minMemberPerJob;
     private String minMemberKey = "minmember";
-    private String min_cpu_per_job;
+    private String minCpuPerJob;
     private String minCpuKey = "mincpu";
 
-    private String min_memory_per_job;
+    private String minMemoryPerJob;
     private String minMemoryKey = "minmemory";
     private String priorityClassName;
     private String priorityClassKey = "priorityclass";
     private Map<String, String> annotations;
     private String jobPrefix = "pod-group-";
-    private final String QUEUE_PREFIX = "scheduling.volcano.sh/queue-name";
-    private final String PODGROUP_PREFIX = "scheduling.k8s.io/group-name";
     private VolcanoClient volcanoClient;
 
     public Volcano(
@@ -101,11 +104,11 @@ public class Volcano extends KubernetesCustomizedScheduler {
 
         for (Map.Entry<String, String> stringStringEntry : configs.entrySet()) {
             if (stringStringEntry.getKey().toLowerCase().equals(minMemberKey)) {
-                this.min_member_per_job = stringStringEntry.getValue();
+                this.minMemberPerJob = stringStringEntry.getValue();
             } else if (stringStringEntry.getKey().toLowerCase().equals(minCpuKey)) {
-                this.min_cpu_per_job = stringStringEntry.getValue();
+                this.minCpuPerJob = stringStringEntry.getValue();
             } else if (stringStringEntry.getKey().toLowerCase().equals(minMemoryKey)) {
-                this.min_memory_per_job = stringStringEntry.getValue();
+                this.minMemoryPerJob = stringStringEntry.getValue();
             } else if (stringStringEntry.getKey().toLowerCase().equals(priorityClassKey)) {
                 this.priorityClassName = stringStringEntry.getValue();
             }
@@ -117,19 +120,19 @@ public class Volcano extends KubernetesCustomizedScheduler {
     @Override
     public HasMetadata prepareRequestResources() {
         if (this.queue != null) {
-            VolcanoQueueFactory.getInstance().InitVolcanoQueueFactory(this.flinkConfig);
+            VolcanoQueueFactory.getInstance().initVolcanoQueueFactory(this.flinkConfig);
             FlinkQueue queue = VolcanoQueueFactory.getInstance().getQueueByNameOrId(this.queue);
             KubernetesResource kubeResource = queue.getKubeResource();
         }
 
         HashMap<String, Quantity> minResources = new HashMap<>();
-        if (this.min_cpu_per_job != null) {
-            minResources.put(Constants.RESOURCE_NAME_CPU, new Quantity(this.min_cpu_per_job));
+        if (this.minCpuPerJob != null) {
+            minResources.put(Constants.RESOURCE_NAME_CPU, new Quantity(this.minCpuPerJob));
         }
-        if (this.min_memory_per_job != null) {
+        if (this.minMemoryPerJob != null) {
             minResources.put(
                     Constants.RESOURCE_NAME_MEMORY,
-                    new Quantity(this.min_memory_per_job, Constants.RESOURCE_UNIT_MB));
+                    new Quantity(this.minMemoryPerJob, Constants.RESOURCE_UNIT_MB));
         }
 
         if (this.jobId != null) {
@@ -144,10 +147,10 @@ public class Volcano extends KubernetesCustomizedScheduler {
                     .withMinResources(minResources)
                     .endSpec();
 
-            if (this.min_member_per_job != null) {
+            if (this.minMemberPerJob != null) {
                 podGroupBuilder
                         .editOrNewSpec()
-                        .withMinMember(Integer.valueOf(this.min_member_per_job))
+                        .withMinMember(Integer.valueOf(this.minMemberPerJob))
                         .endSpec();
             }
 

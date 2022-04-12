@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import java.util.List;
 import java.util.Map;
 
+/** TODO. */
 public interface CustomizedScheduler {
     /**
      * Apply transformations to the given FlinkPod in accordance with this feature. This can include
@@ -35,6 +36,7 @@ public interface CustomizedScheduler {
     KubernetesCustomizedScheduler getSchedulerByName(String name);
 
     CustomizedScheduler settingPropertyIntoScheduler(List<Map<String, String>> maplist);
+
     /**
      * Build the accompanying Kubernetes resources that should be introduced to support this
      * feature. This could only be applicable on the client-side submission process.

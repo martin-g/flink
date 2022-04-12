@@ -20,6 +20,7 @@ package org.apache.flink.kubernetes.kubeclient.decorators.schedulers.queue;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
+/** TODO. */
 public class VolcanoQueue extends FlinkQueue {
     public VolcanoQueue(String queueIdOrName, KubernetesResource kubeResource) {
         super(queueIdOrName, kubeResource);

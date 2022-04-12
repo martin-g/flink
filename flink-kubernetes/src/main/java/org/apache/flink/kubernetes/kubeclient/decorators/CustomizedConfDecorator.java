@@ -34,11 +34,12 @@ import java.util.Map;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+/** TODO. */
 public class CustomizedConfDecorator extends AbstractKubernetesStepDecorator {
 
     private final AbstractKubernetesParameters kubernetesComponentConf;
     private final Configuration flinkConfig;
-    private final String DEFAULT_SCHEDULER_NAME = "default-scheduler";
+    private static final String DEFAULT_SCHEDULER_NAME = "default-scheduler";
     private CustomizedScheduler customizedScheduler = null;
 
     public CustomizedConfDecorator(AbstractKubernetesParameters kubernetesComponentConf) {
