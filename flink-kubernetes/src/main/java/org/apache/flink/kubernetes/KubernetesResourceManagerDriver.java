@@ -18,8 +18,6 @@
 
 package org.apache.flink.kubernetes;
 
-import io.fabric8.volcano.client.VolcanoClient;
-
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.configuration.BlobServerOptions;
 import org.apache.flink.configuration.Configuration;
@@ -57,6 +55,8 @@ import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.concurrent.FutureUtils;
+
+import io.fabric8.volcano.client.VolcanoClient;
 
 import javax.annotation.Nullable;
 
@@ -198,7 +198,8 @@ public class KubernetesResourceManagerDriver
                                         podName,
                                         exception);
                                 CompletableFuture<KubernetesWorkerNode> future =
-                                        requestResourceFutures.remove(taskManagerSpec.getPod().getName());
+                                        requestResourceFutures.remove(
+                                                taskManagerSpec.getPod().getName());
                                 if (future != null) {
                                     future.completeExceptionally(exception);
                                 }
@@ -223,9 +224,7 @@ public class KubernetesResourceManagerDriver
 
     @Override
     public void refreshAssociatedJobResources(JobID jobId) {
-        log.warn(
-                "[TEST] Start to refresh Job resources for JobID {}.",
-                jobId.toString());
+        log.warn("[TEST] Start to refresh Job resources for JobID {}.", jobId.toString());
         // Check whether the K8S Customize Scheduler is enabled
         List<KubernetesPod> podList =
                 flinkKubeClient.getPodsWithLabels(
@@ -245,13 +244,14 @@ public class KubernetesResourceManagerDriver
 
         // ext enabled, get customerized scheduler
         if (isEnabled) {
-            if (KubernetesCustomizedScheduler.isSupportCustomizedScheduler(customerizedSchedulerName)) {
+            if (KubernetesCustomizedScheduler.isSupportCustomizedScheduler(
+                    customerizedSchedulerName)) {
                 // TODO: NEED make it more common
                 VolcanoClient volcanoClient = FlinkVolcanoClient.getVolcanoClient(this.flinkConfig);
                 log.warn("[TEST] Get volcano client in refresh.");
                 // TODO: muiltiple threads support
-                volcanoClient.podGroups().withName("pod-group-"+jobId.toString()).delete();
-                log.warn("[TEST] End for clean podgroup {}", "pod-group-"+jobId.toString());
+                volcanoClient.podGroups().withName("pod-group-" + jobId.toString()).delete();
+                log.warn("[TEST] End for clean podgroup {}", "pod-group-" + jobId.toString());
             }
         }
     }

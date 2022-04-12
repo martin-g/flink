@@ -18,10 +18,9 @@
 
 package org.apache.flink.kubernetes.kubeclient;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-
 import org.apache.flink.kubernetes.kubeclient.resources.KubernetesPod;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
 import java.util.List;
 

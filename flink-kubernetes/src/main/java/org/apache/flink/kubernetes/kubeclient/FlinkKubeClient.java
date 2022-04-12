@@ -56,7 +56,8 @@ public interface FlinkKubeClient extends AutoCloseable {
      * @param kubernetesPod taskmanager pod
      * @return Return the taskmanager pod creation future
      */
-    CompletableFuture<Void> createTaskManagerPod(KubernetesTaskManagerSpecification taskManagerSpec);
+    CompletableFuture<Void> createTaskManagerPod(
+            KubernetesTaskManagerSpecification taskManagerSpec);
 
     /**
      * Stop a specified pod by name.

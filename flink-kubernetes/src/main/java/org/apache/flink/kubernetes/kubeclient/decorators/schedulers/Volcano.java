@@ -1,13 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.flink.kubernetes.kubeclient.decorators.schedulers;
-
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
-import io.fabric8.kubernetes.api.model.PodBuilder;
-
-import io.fabric8.volcano.client.VolcanoClient;
-
-import io.fabric8.volcano.scheduling.v1beta1.PodGroupBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.DeploymentOptions;
@@ -20,12 +29,17 @@ import org.apache.flink.kubernetes.kubeclient.decorators.schedulers.queue.Volcan
 import org.apache.flink.kubernetes.kubeclient.parameters.AbstractKubernetesParameters;
 import org.apache.flink.kubernetes.utils.Constants;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.volcano.client.VolcanoClient;
+import io.fabric8.volcano.scheduling.v1beta1.PodGroupBuilder;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static sun.tools.java.Constants.NULL;
 
 public class Volcano extends KubernetesCustomizedScheduler {
     @Override
@@ -50,38 +64,34 @@ public class Volcano extends KubernetesCustomizedScheduler {
     private final String PODGROUP_PREFIX = "scheduling.k8s.io/group-name";
     private VolcanoClient volcanoClient;
 
-
     public Volcano(
-            AbstractKubernetesParameters kubernetesComponentConf,
-            Configuration flinkConfig) {
+            AbstractKubernetesParameters kubernetesComponentConf, Configuration flinkConfig) {
         super(kubernetesComponentConf, flinkConfig);
         this.volcanoClient = FlinkVolcanoClient.getVolcanoClient(this.flinkConfig);
         if (this.flinkConfig
                 .get(DeploymentOptions.TARGET)
                 .equals(KubernetesDeploymentTarget.APPLICATION.getName())) {
-            this.jobId = this.flinkConfig
-                    .getOptional(KubernetesConfigOptions.CLUSTER_ID);
-        }
-        else if (this.flinkConfig
+            this.jobId = this.flinkConfig.getOptional(KubernetesConfigOptions.CLUSTER_ID);
+        } else if (this.flinkConfig
                 .getString(DeploymentOptions.TARGET)
-                .equals(KubernetesDeploymentTarget.SESSION
-                        .getName())) {
-            if (kubernetesComponentConf.getAssociatedJobs() != null && kubernetesComponentConf.getAssociatedJobs().size() >= 1) {
+                .equals(KubernetesDeploymentTarget.SESSION.getName())) {
+            if (kubernetesComponentConf.getAssociatedJobs() != null
+                    && kubernetesComponentConf.getAssociatedJobs().size() >= 1) {
                 this.jobId = kubernetesComponentConf.getAssociatedJobs().toArray()[0];
             }
-
         }
     }
 
     @Override
-    public CustomizedScheduler settingPropertyIntoScheduler(
-            List<Map<String, String>> mapList) {
+    public CustomizedScheduler settingPropertyIntoScheduler(List<Map<String, String>> mapList) {
 
         this.annotations = mapList.get(0);
         this.queue = this.annotations.getOrDefault(QUEUE_PREFIX, null);
         if (!this.annotations.containsKey(PODGROUP_PREFIX) && this.jobId != null) {
             if (this.annotations.isEmpty()) {
-                this.annotations = Collections.singletonMap(PODGROUP_PREFIX, this.jobPrefix + this.jobId.toString());
+                this.annotations =
+                        Collections.singletonMap(
+                                PODGROUP_PREFIX, this.jobPrefix + this.jobId.toString());
             } else {
                 this.annotations.put(PODGROUP_PREFIX, this.jobPrefix + this.jobId.toString());
             }
@@ -94,11 +104,9 @@ public class Volcano extends KubernetesCustomizedScheduler {
                 this.min_member_per_job = stringStringEntry.getValue();
             } else if (stringStringEntry.getKey().toLowerCase().equals(minCpuKey)) {
                 this.min_cpu_per_job = stringStringEntry.getValue();
-            }
-            else if (stringStringEntry.getKey().toLowerCase().equals(minMemoryKey)) {
+            } else if (stringStringEntry.getKey().toLowerCase().equals(minMemoryKey)) {
                 this.min_memory_per_job = stringStringEntry.getValue();
-            }
-            else if (stringStringEntry.getKey().toLowerCase().equals(priorityClassKey)) {
+            } else if (stringStringEntry.getKey().toLowerCase().equals(priorityClassKey)) {
                 this.priorityClassName = stringStringEntry.getValue();
             }
         }
@@ -110,20 +118,18 @@ public class Volcano extends KubernetesCustomizedScheduler {
     public HasMetadata prepareRequestResources() {
         if (this.queue != null) {
             VolcanoQueueFactory.getInstance().InitVolcanoQueueFactory(this.flinkConfig);
-            FlinkQueue queue = VolcanoQueueFactory
-                    .getInstance()
-                    .getQueueByNameOrId(this.queue);
+            FlinkQueue queue = VolcanoQueueFactory.getInstance().getQueueByNameOrId(this.queue);
             KubernetesResource kubeResource = queue.getKubeResource();
         }
 
         HashMap<String, Quantity> minResources = new HashMap<>();
         if (this.min_cpu_per_job != null) {
-            minResources.put(
-                    Constants.RESOURCE_NAME_CPU,
-                    new Quantity(this.min_cpu_per_job));
+            minResources.put(Constants.RESOURCE_NAME_CPU, new Quantity(this.min_cpu_per_job));
         }
         if (this.min_memory_per_job != null) {
-            minResources.put(Constants.RESOURCE_NAME_MEMORY, new Quantity(this.min_memory_per_job, Constants.RESOURCE_UNIT_MB));
+            minResources.put(
+                    Constants.RESOURCE_NAME_MEMORY,
+                    new Quantity(this.min_memory_per_job, Constants.RESOURCE_UNIT_MB));
         }
 
         if (this.jobId != null) {
@@ -153,10 +159,7 @@ public class Volcano extends KubernetesCustomizedScheduler {
             }
 
             if (this.queue != null) {
-                podGroupBuilder
-                        .editOrNewSpec()
-                        .withQueue(this.queue)
-                        .endSpec();
+                podGroupBuilder.editOrNewSpec().withQueue(this.queue).endSpec();
             }
 
             return podGroupBuilder.build();
@@ -173,10 +176,7 @@ public class Volcano extends KubernetesCustomizedScheduler {
                 .endSpec();
 
         if (!this.annotations.isEmpty()) {
-            basicPodBuilder
-                    .editOrNewMetadata()
-                    .withAnnotations(this.annotations)
-                    .endMetadata();
+            basicPodBuilder.editOrNewMetadata().withAnnotations(this.annotations).endMetadata();
         }
         return new FlinkPod.Builder(flinkPod).withPod(basicPodBuilder.build()).build();
     }
