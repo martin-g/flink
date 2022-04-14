@@ -224,34 +224,31 @@ public class KubernetesResourceManagerDriver
 
     @Override
     public void refreshAssociatedJobResources(JobID jobId) {
-        log.warn("[TEST] Start to refresh Job resources for JobID {}.", jobId.toString());
-        // Check whether the K8S Customize Scheduler is enabled
+        log.warn("[TEST] Start to refresh Job resources for JobID {}.", jobId);
+        // Check whether a custom K8S Scheduler is being used
         List<KubernetesPod> podList =
                 flinkKubeClient.getPodsWithLabels(
                         KubernetesUtils.getTaskManagerSelectors(clusterId));
 
-        Boolean isEnabled = Boolean.FALSE;
-        String customerizedSchedulerName = null;
+        String customSchedulerName = null;
 
         for (KubernetesPod pod : podList) {
             String schedulerName = pod.getInternalResource().getSpec().getSchedulerName();
             if (!schedulerName.equals("default-scheduler")) {
-                isEnabled = Boolean.TRUE;
-                customerizedSchedulerName = schedulerName;
+                customSchedulerName = schedulerName;
                 break;
             }
         }
 
-        // ext enabled, get customerized scheduler
-        if (isEnabled) {
-            if (KubernetesCustomizedScheduler.isSupportCustomizedScheduler(
-                    customerizedSchedulerName)) {
-                // TODO: NEED make it more common
+        if (customSchedulerName != null) {
+            if (KubernetesCustomizedScheduler.isSupportCustomizedScheduler(customSchedulerName)) {
+                // TODO: NEED make it more generic
                 VolcanoClient volcanoClient = FlinkVolcanoClient.getVolcanoClient(this.flinkConfig);
                 log.warn("[TEST] Get volcano client in refresh.");
-                // TODO: muiltiple threads support
-                volcanoClient.podGroups().withName("pod-group-" + jobId.toString()).delete();
-                log.warn("[TEST] End for clean podgroup {}", "pod-group-" + jobId.toString());
+                // TODO: multiple threads support
+                final String podGroupName = "pod-group-" + jobId;
+                volcanoClient.podGroups().withName(podGroupName).delete();
+                log.warn("[TEST] End for clean podgroup {}", podGroupName);
             }
         }
     }

@@ -43,6 +43,7 @@ public interface CustomizedScheduler {
      */
     FlinkPod mergePropertyIntoPod(FlinkPod flinkPod);
 
+    // TODO mgrigorov consider returning a List<HasMetadata>
     HasMetadata prepareRequestResources();
 
     Object getJobId();

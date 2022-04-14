@@ -65,19 +65,17 @@ public class Volcano extends KubernetesCustomizedScheduler {
     private String priorityClassKey = "priorityclass";
     private Map<String, String> annotations;
     private String jobPrefix = "pod-group-";
-    private VolcanoClient volcanoClient;
+    private final VolcanoClient volcanoClient;
 
     public Volcano(
             AbstractKubernetesParameters kubernetesComponentConf, Configuration flinkConfig) {
         super(kubernetesComponentConf, flinkConfig);
         this.volcanoClient = FlinkVolcanoClient.getVolcanoClient(this.flinkConfig);
-        if (this.flinkConfig
-                .get(DeploymentOptions.TARGET)
-                .equals(KubernetesDeploymentTarget.APPLICATION.getName())) {
+
+        String deployment = this.flinkConfig.getString(DeploymentOptions.TARGET);
+        if (KubernetesDeploymentTarget.APPLICATION.getName().equals(deployment)) {
             this.jobId = this.flinkConfig.getOptional(KubernetesConfigOptions.CLUSTER_ID);
-        } else if (this.flinkConfig
-                .getString(DeploymentOptions.TARGET)
-                .equals(KubernetesDeploymentTarget.SESSION.getName())) {
+        } else if (KubernetesDeploymentTarget.SESSION.getName().equals(deployment)) {
             if (kubernetesComponentConf.getAssociatedJobs() != null
                     && kubernetesComponentConf.getAssociatedJobs().size() >= 1) {
                 this.jobId = kubernetesComponentConf.getAssociatedJobs().toArray()[0];
@@ -93,10 +91,9 @@ public class Volcano extends KubernetesCustomizedScheduler {
         if (!this.annotations.containsKey(PODGROUP_PREFIX) && this.jobId != null) {
             if (this.annotations.isEmpty()) {
                 this.annotations =
-                        Collections.singletonMap(
-                                PODGROUP_PREFIX, this.jobPrefix + this.jobId.toString());
+                        Collections.singletonMap(PODGROUP_PREFIX, this.jobPrefix + this.jobId);
             } else {
-                this.annotations.put(PODGROUP_PREFIX, this.jobPrefix + this.jobId.toString());
+                this.annotations.put(PODGROUP_PREFIX, this.jobPrefix + this.jobId);
             }
         }
 

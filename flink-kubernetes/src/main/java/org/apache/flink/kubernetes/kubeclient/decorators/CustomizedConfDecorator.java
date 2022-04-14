@@ -37,10 +37,12 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 /** TODO. */
 public class CustomizedConfDecorator extends AbstractKubernetesStepDecorator {
 
+    private static final String DEFAULT_SCHEDULER_NAME = "default-scheduler";
+
     private final AbstractKubernetesParameters kubernetesComponentConf;
     private final Configuration flinkConfig;
-    private static final String DEFAULT_SCHEDULER_NAME = "default-scheduler";
-    private CustomizedScheduler customizedScheduler = null;
+
+    private final CustomizedScheduler customizedScheduler;
 
     public CustomizedConfDecorator(AbstractKubernetesParameters kubernetesComponentConf) {
         this.kubernetesComponentConf = checkNotNull(kubernetesComponentConf);
@@ -50,15 +52,15 @@ public class CustomizedConfDecorator extends AbstractKubernetesStepDecorator {
 
     private KubernetesCustomizedScheduler checkHasCustomizedScheduler(
             AbstractKubernetesParameters kubernetesComponentConf) {
-        String configuredSchdulerName = kubernetesComponentConf.getPodSchedulerName();
-        if (configuredSchdulerName == null
-                || configuredSchdulerName.equals(DEFAULT_SCHEDULER_NAME)) {
+        String configuredSchedulerName = kubernetesComponentConf.getPodSchedulerName();
+        if (configuredSchedulerName == null
+                || configuredSchedulerName.equals(DEFAULT_SCHEDULER_NAME)) {
             return null;
         }
 
         KubernetesCustomizedScheduler kubernetesCustomizedScheduler =
                 new KubernetesCustomizedScheduler(this.kubernetesComponentConf, this.flinkConfig);
-        return kubernetesCustomizedScheduler.getSchedulerByName(configuredSchdulerName);
+        return kubernetesCustomizedScheduler.getSchedulerByName(configuredSchedulerName);
     }
 
     @Override
@@ -82,6 +84,8 @@ public class CustomizedConfDecorator extends AbstractKubernetesStepDecorator {
 
     @Override
     public List<HasMetadata> buildAccompanyingKubernetesResources() throws IOException {
+        // FIXME this method currently is exactly the same as
+        // buildPreAccompanyingKubernetesResources()
         HasMetadata hasMetadata = this.customizedScheduler.prepareRequestResources();
         if (hasMetadata != null) {
             return Collections.singletonList(hasMetadata);
@@ -92,6 +96,7 @@ public class CustomizedConfDecorator extends AbstractKubernetesStepDecorator {
 
     @Override
     public List<HasMetadata> buildPreAccompanyingKubernetesResources() {
+        // FIXME this method currently is exactly the same as buildAccompanyingKubernetesResources()
         HasMetadata hasMetadata = this.customizedScheduler.prepareRequestResources();
         if (hasMetadata != null) {
             return Collections.singletonList(hasMetadata);
